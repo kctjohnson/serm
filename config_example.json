@@ -1,0 +1,15 @@
+{
+  "logPath": "/Path/To/Logs",
+  "services": [
+    {
+      "name": "Example Service",
+      "bin": "/Path/To/Binary",
+      "args": [
+        "-r", "abccba"
+      ],
+      "retry": true,
+      "retryCount": 10
+      "onStartup": true
+    }
+  ]
+}
