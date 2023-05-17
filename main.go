@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"time"
+)
 
 // Service manager handles managing all of the different services, their status, and their logs
 //
@@ -12,21 +16,26 @@ import "fmt"
 // Keeps track of PID and
 
 func main() {
-	cfg := NewConfig()
-	fmt.Printf("%#v\n", cfg)
+	procMan := NewProcessManager()
+	err := procMan.OnStartup()
+	if err != nil {
+		return
+	}
 
-	// pInfo, err := spawnProcess("/usr/bin/tail", []string{"-f", "/USers/killean/Documents/Projects/go/service-manager/cmd/printer/print.log"})
-	// if err != nil {
-	// 	panic(err)
-	// }
-	//
-	// fmt.Printf("%#v\n", pInfo)
-	//
-	// for {
-	// 	// out, err := pInfo.Cmd.CombinedOutput()
-	// 	// if err != nil {
-	// 	// 	panic(err)
-	// 	// }
-	// 	// fmt.Printf("Out: %s\n", out)
-	// }
+	for i := 0; i < 20; i++ {
+		fmt.Printf("Processes:\n\n")
+		for _, proc := range procMan.Processes {
+			fmt.Printf("Name: %s\n", proc.Config.Name)
+			fmt.Printf("PID: %d\n\n\n", proc.Info.PID)
+		}
+		time.Sleep(time.Second)
+	}
+
+	for _, proc := range procMan.Processes {
+		p, err := os.FindProcess(proc.Info.PID)
+		if err != nil {
+			return
+		}
+		p.Kill()
+	}
 }

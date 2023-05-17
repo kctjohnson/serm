@@ -1,24 +1,56 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"os"
 	"time"
 )
 
-func main() {
-	logFile, err := os.Create("print.log")
-	if err != nil {
-		panic(err)
-	}
+func logNumbers() {
+	nums := "0123456789"
 
-	c := 'a'
+	c := 0
 	for {
-		_, err = logFile.WriteString(fmt.Sprintf("%c\n", c))
-		if err != nil {
-			panic(err)
-		}
-		c = ((c - 97 + 1) % 26) + 97
+		fmt.Printf("%c\n", nums[c])
+		c = (c + 1) % len(nums)
 		time.Sleep(time.Second / 4)
+	}
+}
+
+func logAlphabet() {
+	alph := "abcdefghijklnopqrstuvwxyz"
+
+	c := 0
+	for {
+		fmt.Printf("%c\n", alph[c])
+		c = (c + 1) % len(alph)
+		time.Sleep(time.Second / 4)
+	}
+}
+
+func logSymbols() {
+	symb := "!@#$%^&*()_+"
+
+	c := 0
+	for {
+		fmt.Printf("%c\n", symb[c])
+		c = (c + 1) % len(symb)
+		time.Sleep(time.Second / 4)
+	}
+}
+
+func main() {
+	typePtr := flag.String("type", "num", "Log Type")
+	flag.Parse()
+
+	switch *typePtr {
+	case "num":
+		logNumbers()
+	case "alph":
+		logAlphabet()
+	case "symb":
+		logSymbols()
+	default:
+		logNumbers()
 	}
 }

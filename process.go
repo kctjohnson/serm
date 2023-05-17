@@ -9,52 +9,68 @@ import (
 )
 
 type ProcessManager struct {
-	Processes []ProcessInfo
+	Processes []Process
 	Config    Config
+}
+
+func NewProcessManager() *ProcessManager {
+	return &ProcessManager{
+		Processes: []Process{},
+		Config:    NewConfig(),
+	}
+}
+
+type Process struct {
+	Info   ProcessInfo
+	Config Service
 }
 
 type ProcessInfo struct {
 	PID     int
 	OutPath string
 	ErrPath string
-	Cmd     *exec.Cmd
-	Service Service
 }
 
-func spawnProcess(binPath string, args []string) (ProcessInfo, error) {
-	// Eventually replace this with files
-	sOut := os.Stdout
-	sErr := os.Stderr
+func (pm *ProcessManager) OnStartup() error {
+	for _, serv := range pm.Config.Services {
+		if serv.OnStartup == true {
+			err := pm.startProcess(serv)
+			if err != nil {
+				for retries := 0; err != nil && serv.Retry && retries < serv.RetryCount; retries++ {
+					err = pm.startProcess(serv)
+				}
+			}
 
-	fmt.Printf("Creating command for %s with args %v\n", binPath, args)
-	cmd := exec.Command(binPath, args...)
-	cmd.Stdout = sOut
-	cmd.Stderr = sErr
-	cmd.Dir = filepath.Dir(binPath)
+			if err != nil {
+				fmt.Printf("Failed to start %s\nError: %s\n", serv.Name, err.Error())
+			}
+		}
+	}
+	return nil
+}
 
-	fmt.Printf("Starting command\n")
-	err := cmd.Start()
+func (pm *ProcessManager) startProcess(service Service) error {
+	procInfo, err := spawnDetachedProcess(pm.Config.LogPath, service.Bin, service.Args, service.Name)
 	if err != nil {
-		return ProcessInfo{}, err
+		return err
 	}
 
-	fmt.Printf("Command PID: %d\n", cmd.Process.Pid)
-	pid := cmd.Process.Pid
+	pm.Processes = append(pm.Processes, Process{
+		Info:   procInfo,
+		Config: service,
+	})
 
-	return ProcessInfo{
-		PID:     pid,
-		OutPath: "",
-		ErrPath: "",
-		Cmd:     cmd,
-	}, nil
+	return nil
 }
 
-func spawnDetachedProcess(binPath string, args []string) (ProcessInfo, error) {
+func spawnDetachedProcess(logPath string, binPath string, args []string, processName string) (ProcessInfo, error) {
+	// Get clean paths
+	logPathClean := filepath.Clean(logPath)
+
 	// Eventually replace this with files
 	curDateStamp := time.Now().Unix()
-	binName := filepath.Base(binPath)
-	outPath := fmt.Sprintf("%s_out_%d.log", binName, curDateStamp)
-	errPath := fmt.Sprintf("%s_err_%d.log", binName, curDateStamp)
+	outPath := fmt.Sprintf("%s/%s_out_%d.log", logPathClean, processName, curDateStamp)
+	errPath := fmt.Sprintf("%s/%s_err_%d.log", logPathClean, processName, curDateStamp)
 
 	outFile, err := os.Create(outPath)
 	if err != nil {
@@ -94,6 +110,5 @@ func spawnDetachedProcess(binPath string, args []string) (ProcessInfo, error) {
 		PID:     pid,
 		OutPath: outPath,
 		ErrPath: errPath,
-		Cmd:     nil,
 	}, nil
 }
