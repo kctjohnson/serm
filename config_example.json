@@ -8,7 +8,7 @@
         "-r", "abccba"
       ],
       "retry": true,
-      "retryCount": 10
+      "retryCount": 10,
       "onStartup": true
     }
   ]

@@ -8,11 +8,17 @@ import (
 	"time"
 )
 
+type ProcessManager struct {
+	Processes []ProcessInfo
+	Config    Config
+}
+
 type ProcessInfo struct {
 	PID     int
 	OutPath string
 	ErrPath string
 	Cmd     *exec.Cmd
+	Service Service
 }
 
 func spawnProcess(binPath string, args []string) (ProcessInfo, error) {

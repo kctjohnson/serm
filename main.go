@@ -1,8 +1,6 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // Service manager handles managing all of the different services, their status, and their logs
 //
@@ -13,23 +11,22 @@ import (
 //
 // Keeps track of PID and
 
-func readFileEnd(filePath string) (string, error) {
-	return "", nil
-}
-
 func main() {
-	pInfo, err := spawnProcess("/usr/bin/tail", []string{"-f", "/USers/killean/Documents/Projects/go/service-manager/cmd/printer/print.log"})
-	if err != nil {
-		panic(err)
-	}
+	cfg := NewConfig()
+	fmt.Printf("%#v\n", cfg)
 
-	fmt.Printf("%#v\n", pInfo)
-
-	for {
-		// out, err := pInfo.Cmd.CombinedOutput()
-		// if err != nil {
-		// 	panic(err)
-		// }
-		// fmt.Printf("Out: %s\n", out)
-	}
+	// pInfo, err := spawnProcess("/usr/bin/tail", []string{"-f", "/USers/killean/Documents/Projects/go/service-manager/cmd/printer/print.log"})
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//
+	// fmt.Printf("%#v\n", pInfo)
+	//
+	// for {
+	// 	// out, err := pInfo.Cmd.CombinedOutput()
+	// 	// if err != nil {
+	// 	// 	panic(err)
+	// 	// }
+	// 	// fmt.Printf("Out: %s\n", out)
+	// }
 }
