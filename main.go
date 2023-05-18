@@ -3,39 +3,58 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
+	"strings"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-// Service manager handles managing all of the different services, their status, and their logs
-//
-// Need a config file that stores info about each service
-// - Retry On Error
-// - Binary location
-// - Flags
-//
-// Keeps track of PID and
+type Model struct {
+	ProcessManager *ProcessManager
+}
+
+func NewModel() Model {
+	procMan := NewProcessManager()
+	procMan.OnStartup()
+	return Model{
+		ProcessManager: procMan,
+	}
+}
+
+func (m Model) Init() tea.Cmd {
+	return nil
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q":
+			for _, proc := range m.ProcessManager.Processes {
+				err := m.ProcessManager.StopProcess(proc)
+				if err != nil {
+					fmt.Printf("ERROR STOPPING PROCESS: %#v\n", err)
+				}
+			}
+			return m, tea.Quit
+		}
+	}
+	return m, nil
+}
+
+func (m Model) View() string {
+	var procList []string
+	for _, proc := range m.ProcessManager.Processes {
+		procList = append(procList, fmt.Sprintf("| %d: %s |", proc.ProcInfo.PID, proc.Service.Name))
+	}
+	procListStr := strings.Join(procList, "\n")
+
+	return procListStr + "\n\nPress q to quit"
+}
 
 func main() {
-	procMan := NewProcessManager()
-	err := procMan.OnStartup()
-	if err != nil {
-		return
-	}
-
-	for i := 0; i < 20; i++ {
-		fmt.Printf("Processes:\n\n")
-		for _, proc := range procMan.Processes {
-			fmt.Printf("Name: %s\n", proc.Config.Name)
-			fmt.Printf("PID: %d\n\n\n", proc.Info.PID)
-		}
-		time.Sleep(time.Second)
-	}
-
-	for _, proc := range procMan.Processes {
-		p, err := os.FindProcess(proc.Info.PID)
-		if err != nil {
-			return
-		}
-		p.Kill()
+	p := tea.NewProgram(NewModel())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Alas, there's been an error: %v", err)
+		os.Exit(1)
 	}
 }
