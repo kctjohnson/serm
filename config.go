@@ -33,6 +33,15 @@ func (c *Config) init() {
 
 	// Unmarshal the json file's contents into the config struct
 	viper.Unmarshal(&c)
+
+	// Check to see that all of the services have unique names
+	foundServices := make(map[string]bool)
+	for _, serv := range c.Services {
+		if ok := foundServices[serv.Name]; ok {
+			panic("Duplicate service name entry found! Please only provide unique service names!")
+		}
+		foundServices[serv.Name] = true
+	}
 }
 
 func (c Config) loadConfig(retry bool) {
