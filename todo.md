@@ -1,0 +1,7 @@
+- [ ] Ability to move through list of processes
+    - [ ] Start
+    - [ ] Stop
+    - [ ] Restart
+    - [ ] Enable (Need SQL for this, and a way to modify the config)
+    - [ ] Disable (Need SQL for this, and a way to modify the config)
+- [ ] SQLite database to manage and keep track of processes in case the main program crashes
