@@ -70,7 +70,7 @@ func (pm ProcessManager) ServiceRunning(service Service) (bool, error) {
 	// Then check to see if the PID is running
 	if foundProc != nil {
 		if foundProc.ProcInfo.PID <= 0 {
-			return false, fmt.Errorf("invalid foundProc.ProcInfo.PID %v", foundProc.ProcInfo.PID)
+			return false, fmt.Errorf("invalid PID %v", foundProc.ProcInfo.PID)
 		}
 
 		proc, err := os.FindProcess(int(foundProc.ProcInfo.PID))
@@ -189,25 +189,18 @@ func spawnDetachedProcess(logPath string, binPath string, args []string, process
 		return ProcessInfo{}, err
 	}
 
-	sOut := outFile
-	sErr := errFile
-
-	// fmt.Printf("Creating command for %s with args %v\n", binPath, args)
 	cmd := exec.Command(binPath, args...)
-	cmd.Stdout = sOut
-	cmd.Stderr = sErr
+	cmd.Stdout = outFile
+	cmd.Stderr = errFile
 	cmd.Dir = filepath.Dir(binPath)
 
-	// fmt.Printf("Starting command\n")
 	err = cmd.Start()
 	if err != nil {
 		return ProcessInfo{}, err
 	}
 
-	// fmt.Printf("Command PID: %d\n", cmd.Process.Pid)
 	pid := cmd.Process.Pid
 
-	// fmt.Printf("Releasing command\n")
 	err = cmd.Process.Release()
 	if err != nil {
 		return ProcessInfo{}, err
